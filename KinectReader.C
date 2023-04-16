@@ -164,8 +164,6 @@ void KinectReader::convertFrame()
 	{
 		libfreenect2::Frame * rgb = frames[libfreenect2::Frame::Color];
 		cv::Mat cvRgb(rgb->height, rgb->width, CV_8UC4, rgb->data);
-		//cv::Mat cvRgb;
-		//cvRgbTmp.copyTo(cvRgb);
 		cv::cvtColor(cvRgb, cvRgb, cv::COLOR_RGBA2BGR);
 		cvFrames[Enums::FrameType::RGB] = cvRgb;
 	}
@@ -173,18 +171,14 @@ void KinectReader::convertFrame()
 		frames.find(libfreenect2::Frame::Depth) != frames.end())
 	{
 		libfreenect2::Frame * depth = frames[libfreenect2::Frame::Depth];
-		cv::Mat cvDepthTmp(depth->height, depth->width, CV_32FC1, depth->data);
-		cv::Mat cvDepth;
-		cvDepthTmp.copyTo(cvDepth);
+		cv::Mat cvDepth(depth->height, depth->width, CV_32FC1, depth->data);
 		cvFrames[Enums::FrameType::DEPTH] = cvDepth;
 	}
 	if (frameTypes & Enums::FrameType::IR &&
 		frames.find(libfreenect2::Frame::Ir) != frames.end())
 	{
 		libfreenect2::Frame * ir = frames[libfreenect2::Frame::Ir];
-		cv::Mat cvIrTmp(ir->height, ir->width, CV_8UC1, ir->data);
-		cv::Mat cvIr;
-		cvIrTmp.copyTo(cvIr);
+		cv::Mat cvIr(ir->height, ir->width, CV_8UC1, ir->data);
 		cvFrames[Enums::FrameType::IR] = cvIr;
 	}
 
