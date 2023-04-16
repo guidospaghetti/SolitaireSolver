@@ -1,0 +1,4 @@
+# Ignore object files
+*.o
+# Ignore built executable TODO make not stupid
+camera
