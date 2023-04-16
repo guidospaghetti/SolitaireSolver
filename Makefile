@@ -14,19 +14,15 @@ LIBS = -lfreenect2 \
 CC = gcc
 CFLAGS = -g -Wall
 
-default: Camera.C
+default: camera
 
-camera: KinectReader.C FrameOutput.C
+camera: Camera.C KinectReader.o FrameOutput.o
 	$(CC) Camera.C KinectReader.o FrameOutput.o $(CFLAGS) $(INCLUDE_DIRS) $(LIB_DIRS) $(LIBS) -o camera
 
-Camera.C: camera
-KinectReader.C: KinectReader.o
-FrameOutput.C: FrameOutput.o
-
-KinectReader.o:
+KinectReader.o: KinectReader.C
 	$(CC) $(CFLAGS) $(INCLUDE_DIRS) $(LIB_DIRS) $(LIBS) -c KinectReader.C
 
-FrameOutput.o:
+FrameOutput.o: FrameOutput.C
 	$(CC) $(CFLAGS) $(INCLUDE_DIRS) $(LIB_DIRS) $(LIB_DIRS) -c FrameOutput.C
 
 clean:
