@@ -3,6 +3,7 @@
 #include "Util.H"
 #include "KinectReader.H"
 #include "FrameOutput.H"
+#include "CardDetector.H"
 
 #include <cstdlib>
 #include <unistd.h>
@@ -92,6 +93,13 @@ int main(int argc, char* argv[])
 	std::list<std::unique_ptr<FrameProcessor> > processors;
 	if (outputFrames)
 	{
+		CardDetectorConfig cardConfig;
+		cardConfig.modelPath = "/home/aaron/repos/yolov7/yolov7-tiny.weights";
+		cardConfig.configPath = "/home/aaron/repos/yolov7/yolov7-tiny.cfg";
+		cardConfig.classesPath = "/home/aaron/repos/yolov7/yolov7-tiny-classes";
+		processors.push_back(std::unique_ptr<FrameProcessor>(
+					new CardDetector(cardConfig)));
+
 		FrameOutputConfig outputConfig;
 		outputConfig.outputVideo = !outputPNGs;
 		outputConfig.outputDestination = outputDestination;
@@ -127,7 +135,7 @@ int main(int argc, char* argv[])
 		for (auto & processor : processors) {
 			allFinishedProcessing &= processor->finishedProcessing();
 		}
-		if (allFinishedProcessing) {
+		if (processors.empty() == false && allFinishedProcessing) {
 			LOG_OUT("All frame processors are done processing forever, stopping");
 			shutdown = true;
 		}
