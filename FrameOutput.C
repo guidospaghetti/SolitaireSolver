@@ -75,6 +75,9 @@ FILE * FrameOutput::setupOutput(cv::Mat & frame)
 		case CV_8UC1:
 			config.pixelFormat = "gray";
 			break;
+		case CV_16UC1:
+			config.pixelFormat = "gray16be";
+			break;
 		case CV_32FC1:
 			config.pixelFormat = "gray16be";
 			LOG_OUT("Pixel format requires unsupported conversion for now, "

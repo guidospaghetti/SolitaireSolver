@@ -122,6 +122,7 @@ int main(int argc, char* argv[])
 		}
 		reader.releaseFrames();
 
+		// TODO make this run with no processors forever
 		bool allFinishedProcessing = true;
 		for (auto & processor : processors) {
 			allFinishedProcessing &= processor->finishedProcessing();
