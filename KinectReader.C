@@ -116,11 +116,8 @@ cv::Mat & KinectReader::getFrame(
 	}
 	else
 	{
-		//LOG_OUT("Requested frame non-blocking, but nothing available");
 		return emptyFrame;
 	}
-
-	// TODO registration of color and depth
 
 	return convertFrame(type);
 }
@@ -158,7 +155,6 @@ void KinectReader::releaseFrames()
 
 void KinectReader::convertFrame()
 {
-	// TODO Mirror the frames to look right
 	if (frameTypes & Enums::FrameType::RGB &&
 		frames.find(libfreenect2::Frame::Color) != frames.end()) 
 	{

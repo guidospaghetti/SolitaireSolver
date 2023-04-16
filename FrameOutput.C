@@ -32,8 +32,6 @@ void FrameOutput::processFrame(std::map<Enums::FrameType, cv::Mat> & frame)
 		}
 	}
 
-	// TODO do registration of depth and rgb
-	// TODO mirror the frame so it looks right
 	if (!writeFrame(frame[config.typeOfFramesToOutput])) {
 		LOG_OUT("Failed to output the frame! Won't process more frames");
 		doneProcessing = true;
