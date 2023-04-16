@@ -2,3 +2,5 @@
 *.o
 # Ignore built executable TODO make not stupid
 camera
+# Ignore any ffmpeg SDP files for rtp streaming
+*.sdp

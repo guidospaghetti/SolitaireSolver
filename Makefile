@@ -8,9 +8,8 @@ LIB_DIRS = -L/usr/local/lib \
 
 LIBS = -lfreenect2 \
 	-lstdc++ \
-	#-lopencv_core \
-	#-lopencv_highgui \
-	#-lopencv_imgproc
+	-lopencv_core \
+	-lopencv_imgproc
 
 CC = gcc
 CFLAGS = -g -Wall

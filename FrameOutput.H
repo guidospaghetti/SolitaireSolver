@@ -1,7 +1,12 @@
+
+#ifndef _SOLITARESOLVER_FRAMEOUTPUT_H_
+#define _SOLITARESOLVER_FRAMEOUTPUT_H_
+
 #include "FrameProcessor.H"
 #include "FrameOutputConfig.H"
 
 #include <vector>
+#include <opencv2/core/mat.hpp>
 
 class FrameOutput : public FrameProcessor {
 	public:
@@ -9,20 +14,20 @@ class FrameOutput : public FrameProcessor {
 	FrameOutput(const FrameOutputConfig & outputConfig);
 	~FrameOutput();
 
-	virtual void processFrame(libfreenect2::FrameMap & frame);
+	virtual void processFrame(std::map<Enums::FrameType, cv::Mat> & frame);
 	virtual bool finishedWithFrame();
 	virtual bool finishedProcessing();
 
 	private:
 
-	FILE * setupOutput(libfreenect2::Frame * frame);
-	bool writeFrame(libfreenect2::Frame * frame);
+	FILE * setupOutput(cv::Mat & frame);
+	bool writeFrame(cv::Mat & frame);
 
 	FrameOutputConfig config;
-	std::vector<libfreenect2::Frame::Type> requiredFormats;
-	libfreenect2::Frame::Type outputFormat;
 	FILE * encoder;
 	long long framesProcessed;
 	bool doneProcessing;
 
 }; // class FrameOutput
+
+#endif

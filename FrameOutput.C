@@ -7,34 +7,7 @@ FrameOutput::FrameOutput(
 	config(outputConfig),
 	encoder(nullptr),
 	doneProcessing(false)
-{
-	switch (config.typeOfFramesToOutput) {
-		case FrameOutputConfig::RGB:
-			outputFormat = libfreenect2::Frame::Color;
-			requiredFormats.push_back(libfreenect2::Frame::Color);
-			break;
-		case FrameOutputConfig::DEPTH:
-			outputFormat = libfreenect2::Frame::Depth;
-			requiredFormats.push_back(libfreenect2::Frame::Depth);
-			break;
-		case FrameOutputConfig::IR:
-			outputFormat = libfreenect2::Frame::Ir;
-			requiredFormats.push_back(libfreenect2::Frame::Ir);
-			break;
-		case FrameOutputConfig::RGB_DEPTH_REGISTERED:
-			outputFormat = libfreenect2::Frame::Color;
-			requiredFormats.push_back(libfreenect2::Frame::Color);
-			requiredFormats.push_back(libfreenect2::Frame::Depth);
-			break;
-		case FrameOutputConfig::DEPTH_RGB_REGISTERED:
-			outputFormat = libfreenect2::Frame::Depth;
-			requiredFormats.push_back(libfreenect2::Frame::Color);
-			requiredFormats.push_back(libfreenect2::Frame::Depth);
-			break;
-		default:
-			break;
-	}
-}
+{}
 
 FrameOutput::~FrameOutput()
 {
@@ -44,16 +17,14 @@ FrameOutput::~FrameOutput()
 	}
 }
 
-void FrameOutput::processFrame(libfreenect2::FrameMap & frame)
+void FrameOutput::processFrame(std::map<Enums::FrameType, cv::Mat> & frame)
 {
-	for (const auto format : requiredFormats) {
-		if (frame.find(format) == frame.end()) {
-			return;
-		}
+	if (frame.find(config.typeOfFramesToOutput) == frame.end()) {
+		return;
 	}
 
 	if (encoder == nullptr) {
-		encoder = setupOutput(frame[outputFormat]);
+		encoder = setupOutput(frame[config.typeOfFramesToOutput]);
 		if (encoder == nullptr) {
 			LOG_OUT("Failed to setup output encoder, won't process more frames");
 			doneProcessing = true;
@@ -63,7 +34,7 @@ void FrameOutput::processFrame(libfreenect2::FrameMap & frame)
 
 	// TODO do registration of depth and rgb
 	// TODO mirror the frame so it looks right
-	if (!writeFrame(frame[outputFormat])) {
+	if (!writeFrame(frame[config.typeOfFramesToOutput])) {
 		LOG_OUT("Failed to output the frame! Won't process more frames");
 		doneProcessing = true;
 	}
@@ -86,30 +57,40 @@ bool FrameOutput::finishedProcessing()
 	return doneProcessing;
 }
 
-FILE * FrameOutput::setupOutput(libfreenect2::Frame * frame)
+FILE * FrameOutput::setupOutput(cv::Mat & frame)
 {
 	std::string command;
-	config.width = frame->width;
-	config.height = frame->height;
+	config.width = frame.cols;
+	config.height = frame.rows;
 
-	if (frame->format == libfreenect2::Frame::Format::RGBX) {
-		config.pixelFormat = "bgr32"; // intentionally flipped
-	} else if (frame->format == libfreenect2::Frame::Format::BGRX) {
-		config.pixelFormat = "rgb32"; // intentionally flipped
-	} else if (frame->format == libfreenect2::Frame::Format::Float) {
-		config.pixelFormat = "gray16be"; // requires pixel conversion TODO
-		LOG_OUT("Output of \"Float\" format frame requires unsupported "
-				"conversion, giving up setting up encoder");
-		return nullptr;
-	} else if (frame->format == libfreenect2::Frame::Format::Gray) {
-		config.pixelFormat = "gray";
+	switch (frame.type()) {
+		case CV_8UC4:
+			// assuming libfreenect2 frame converted appropriately to bgra
+			config.pixelFormat = "bgra";
+			break;
+		case CV_8UC3:
+			// assuming libfreenect2 frame converted appropriately to bgr24
+			config.pixelFormat = "bgr24";
+			break;
+		case CV_8UC1:
+			config.pixelFormat = "gray";
+			break;
+		case CV_32FC1:
+			config.pixelFormat = "gray16be";
+			LOG_OUT("Pixel format requires unsupported conversion for now, "
+					"giving up setting up encoder");
+			return nullptr;
+		default:
+			LOG_OUT("Don't understand pixel format %d", frame.type());
+			return nullptr;
 	}
 
 	if (config.outputVideo)
 	{
+		// Use built ffmpeg tweaked for jetson 
 		command = "/home/aaron/repos/ffmpeg/ffmpeg -f rawvideo "
 			"-s " + std::to_string(config.width) + "x" + std::to_string(config.height) +
-			" -pix_fmt " + config.pixelFormat + " -i - -sdp_file saved_sdp_file " 
+			" -pix_fmt " + config.pixelFormat + " -i - -sdp_file saved_sdp_file.sdp " 
 			"-vcodec h264_nvmpi -f rtp rtp://" + config.outputDestination;
 	}
 	else
@@ -128,13 +109,14 @@ FILE * FrameOutput::setupOutput(libfreenect2::Frame * frame)
 	return popen(command.c_str(), "w");
 }
 
-bool FrameOutput::writeFrame(libfreenect2::Frame * frame)
+bool FrameOutput::writeFrame(cv::Mat & frame)
 {
-	const int bytesToWrite = frame->width * frame->height * frame->bytes_per_pixel;
+	// elemSize accounts for number of channels i.e. CV_8UC4 = 4 bytes
+	const int bytesToWrite = frame.rows * frame.cols * frame.elemSize();
 	int numWritten = 0;
 
 	while (numWritten < bytesToWrite) {
-		const int written = fwrite(&frame->data[numWritten], 1, 
+		const int written = fwrite(frame.ptr(numWritten), 1, 
 			bytesToWrite - numWritten, encoder);
 
 		if (written <= 0) {

@@ -12,11 +12,7 @@
 #include <chrono>
 #include <list>
 
-#include <libfreenect2/libfreenect2.hpp>
-#include <libfreenect2/frame_listener_impl.h>
-#include <libfreenect2/registration.h>
-
-//#include <opencv2/opencv.hpp>
+#include <opencv2/core/mat.hpp>
 
 std::atomic<bool> shutdown(false);
 
@@ -80,7 +76,7 @@ int main(int argc, char* argv[])
 	
 	registerSignals();
 
-	KinectReader reader(libfreenect2::Frame::Color);
+	KinectReader reader(Enums::FrameType::RGB);
 	if (!reader.setupKinect()) {
 		LOG_OUT("Failed to setup kinect");
 		return -1;
@@ -100,14 +96,14 @@ int main(int argc, char* argv[])
 		outputConfig.outputVideo = !outputPNGs;
 		outputConfig.outputDestination = outputDestination;
 		outputConfig.numberOfFramesToOutput = numFramesToRead;
-		outputConfig.typeOfFramesToOutput = FrameOutputConfig::RGB;
+		outputConfig.typeOfFramesToOutput = Enums::FrameType::RGB;
 		processors.push_back(std::unique_ptr<FrameProcessor>(
 					new FrameOutput(outputConfig)));
 	}
 	const auto start = std::chrono::steady_clock::now();
 	while (shutdown == false)
 	{
-		libfreenect2::FrameMap & frame = reader.getFrame(true);
+		std::map<Enums::FrameType, cv::Mat> & frame = reader.getFrame(true);
 
 		// do something;
 

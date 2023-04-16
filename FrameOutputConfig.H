@@ -1,20 +1,17 @@
+
+#ifndef _SOLITARESOLVER_FRAMEOUTPUTCONFIG_H_
+#define _SOLITARESOLVER_FRAMEOUTPUTCONFIG_H_
+
+#include "Util.H"
 #include <string>
 
 class FrameOutputConfig {
 	public:
-	
-	enum FrameType {
-		RGB,
-		DEPTH,
-		IR,
-		RGB_DEPTH_REGISTERED,
-		DEPTH_RGB_REGISTERED
-	};
 
 	FrameOutputConfig() :
 		outputVideo(true),
 		numberOfFramesToOutput(-1),
-		typeOfFramesToOutput(RGB),
+		typeOfFramesToOutput(Enums::FrameType::RGB),
 		width(-1),
 		height(-1)
 	{}
@@ -22,9 +19,11 @@ class FrameOutputConfig {
 	bool outputVideo;
 	std::string outputDestination;
 	long long numberOfFramesToOutput;
-	FrameOutputConfig::FrameType typeOfFramesToOutput;
+	Enums::FrameType typeOfFramesToOutput;
 	int width;
 	int height;
 	std::string pixelFormat;
 
 }; // class FrameOutputConfig
+
+#endif
